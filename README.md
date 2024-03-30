@@ -35,4 +35,4 @@ git push
 * create pull request on GitHub and merge when **able to merge** is shown on the Pull request page.
 
 
-**Let's have fun! 😂🥳😁**
+**Let's have fun while passing the course! 🙏😂🥳😁🙏**
