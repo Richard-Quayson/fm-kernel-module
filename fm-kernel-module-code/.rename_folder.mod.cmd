@@ -1,1 +1,1 @@
-savedcmd_/home/richard/Documents/fm-kernel-module/rename_folder.mod := printf '%s\n'   rename_folder.o | awk '!x[$$0]++ { print("/home/richard/Documents/fm-kernel-module/"$$0) }' > /home/richard/Documents/fm-kernel-module/rename_folder.mod
+savedcmd_/home/richard/Documents/fm-kernel-module/fm-kernel-module-code/rename_folder.mod := printf '%s\n'   rename_folder.o | awk '!x[$$0]++ { print("/home/richard/Documents/fm-kernel-module/fm-kernel-module-code/"$$0) }' > /home/richard/Documents/fm-kernel-module/fm-kernel-module-code/rename_folder.mod
