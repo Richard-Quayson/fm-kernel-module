@@ -1,0 +1,90 @@
+// INITIAL TEST OF JAVA METHODS:
+
+// Main method to call the createFile function
+public static void main(String[] args) {
+    // TEST: CREATE FOLDER
+    // define the folder path to be created using the kernel module
+    String createFolderPath = "/home/richard/Documents/test-folder";
+    createFolder(createFolderPath);
+    System.out.println();
+    System.out.println();
+
+    // TEST: LIST FILES IN DIRECTORY
+    // define the folder path to list the files from
+    String listFolderPath = "/home/richard/Documents";
+    File[] files = listFilesInDirectory(listFolderPath);
+    if (files != null) {
+        for (File file : files) {
+            if (file.isFile()) {
+                System.out.println("File: " + file.getName());
+            } else if (file.isDirectory()) {
+                System.out.println("Directory: " + file.getName());
+            }
+        }
+    }
+    System.out.println();
+    System.out.println();
+
+    // TEST: GET DIRECTORY INFO
+    // define the directory path to get information from
+    String directoryPath = "/home/richard/Documents";
+    String directoryInfo = getDirectoryInfo(directoryPath);
+    System.out.println(directoryInfo);
+    System.out.println();
+    System.out.println();
+
+    // TEST: RENAME FOLDER
+    // define the old and new folder paths to be renamed using the kernel module
+    String oldFolderPath = "/home/richard/Documents/test-folder";
+    String newFolderName = "test-rename-folder";
+    renameFolder(oldFolderPath, newFolderName);
+    System.out.println();
+    System.out.println();
+
+    // TEST: DELETE FOLDER
+    // define the folder path to be deleted using the kernel module
+    String deleteFolderPath = "/home/richard/Documents/test-rename-folder";
+    deleteFolder(deleteFolderPath);
+    System.out.println();
+    System.out.println();
+
+    // TEST: CREATE FILE
+    // define the file path and content to be written to the kernel module
+    String createFilePath = "/home/richard/Documents/test-file.txt";
+    String createFileContent = "This is a test file created using a kernel module.";
+    createFile(createFilePath, createFileContent);
+    System.out.println();
+    System.out.println();
+
+    // TEST: GET FILE DETAILS
+    // define the file path to get details from
+    String filePath = "/home/richard/Documents/test-file.txt";
+    String fileDetails = getFileDetails(filePath);
+    System.out.println(fileDetails);
+    System.out.println();
+    System.out.println();
+
+    // TEST: RENAME FILE
+    // define the old and new file paths to be renamed using the kernel module
+    String oldFilePath = "/home/richard/Documents/test-file.txt";
+    String newFileName = "test-rename-file.txt";
+    renameFile(oldFilePath, newFileName);
+    System.out.println();
+    System.out.println();
+
+    // TEST: UPDATE FILE
+    // define the file path, the new data to append, and the overwrite flag
+    String updateFilePath = "/home/richard/Documents/test-file.txt";
+    String updateFileData = "This is new data appended to the file using a kernel module.";
+    int overwriteFlag = 0;      // 0 for append, 1 for overwrite
+    updateFile(updateFilePath, updateFileData, overwriteFlag);
+    System.out.println();
+    System.out.println();
+
+    // TEST: DELETE FILE
+    // define the file path to be deleted using the kernel module
+    String deleteFilePath = "/home/richard/Documents/test-file.txt";
+    deleteFile(deleteFilePath);
+    System.out.println();
+    System.out.println();
+}

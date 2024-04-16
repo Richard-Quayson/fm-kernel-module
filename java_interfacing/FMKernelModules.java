@@ -1,5 +1,7 @@
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,7 +9,17 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+
+/**
+ * FMKernelModules
+ * this class provides methods to interact with the kernel modules for file and folder operations.
+ * It includes methods to create, rename, and delete folders, create, rename, update, and delete files,
+ * list files in a directory, get directory information, get file details, and read file content.
+ * @authors      Richard Quayson & Thomas Quarshie
+ */
+
 public class FMKernelModules {
+    // define the paths to the proc files for the kernel module
     public static String CREATE_FOLDER_PROC_FILE = "/proc/create_folder";
     public static String RENAME_FOLDER_PROC_FILE = "/proc/rename_folder";
     public static String DELETE_FOLDER_PROC_FILE = "/proc/delete_folder";
@@ -16,101 +28,19 @@ public class FMKernelModules {
     public static String UPDATE_FILE_PROC_FILE = "/proc/update_file";
     public static String DELETE_FILE_PROC_FILE = "/proc/delete_file";
 
-    // Main method to call the createFile function
-    public static void main(String[] args) {
-        // TEST: CREATE FOLDER
-        // define the folder path to be created using the kernel module
-        String createFolderPath = "/home/richard/Documents/test-folder";
-        createFolder(createFolderPath);
-        System.out.println();
-        System.out.println();
 
-        // TEST: LIST FILES IN DIRECTORY
-        // define the folder path to list the files from
-        String listFolderPath = "/home/richard/Documents";
-        File[] files = listFilesInDirectory(listFolderPath);
-        if (files != null) {
-            for (File file : files) {
-                if (file.isFile()) {
-                    System.out.println("File: " + file.getName());
-                } else if (file.isDirectory()) {
-                    System.out.println("Directory: " + file.getName());
-                }
-            }
-        }
-        System.out.println();
-        System.out.println();
+    /**
+     * createFolder
+     * this method requests the creation of a folder using the kernel module.
+     * 
+     * @param folderPath the path of the folder to create.
+     * @return void
+     */
 
-        // TEST: GET DIRECTORY INFO
-        // define the directory path to get information from
-        String directoryPath = "/home/richard/Documents";
-        String directoryInfo = getDirectoryInfo(directoryPath);
-        System.out.println(directoryInfo);
-        System.out.println();
-        System.out.println();
-
-        // TEST: RENAME FOLDER
-        // define the old and new folder paths to be renamed using the kernel module
-        String oldFolderPath = "/home/richard/Documents/test-folder";
-        String newFolderName = "test-rename-folder";
-        renameFolder(oldFolderPath, newFolderName);
-        System.out.println();
-        System.out.println();
-
-        // TEST: DELETE FOLDER
-        // define the folder path to be deleted using the kernel module
-        String deleteFolderPath = "/home/richard/Documents/test-rename-folder";
-        deleteFolder(deleteFolderPath);
-        System.out.println();
-        System.out.println();
-
-        // TEST: CREATE FILE
-        // define the file path and content to be written to the kernel module
-        String createFilePath = "/home/richard/Documents/test-file.txt";
-        String createFileContent = "This is a test file created using a kernel module.";
-        createFile(createFilePath, createFileContent);
-        System.out.println();
-        System.out.println();
-
-        // TEST: GET FILE DETAILS
-        // define the file path to get details from
-        String filePath = "/home/richard/Documents/test-file.txt";
-        String fileDetails = getFileDetails(filePath);
-        System.out.println(fileDetails);
-        System.out.println();
-        System.out.println();
-
-        // TEST: RENAME FILE
-        // define the old and new file paths to be renamed using the kernel module
-        String oldFilePath = "/home/richard/Documents/test-file.txt";
-        String newFileName = "test-rename-file.txt";
-        renameFile(oldFilePath, newFileName);
-        System.out.println();
-        System.out.println();
-
-        // TEST: UPDATE FILE
-        // define the file path, the new data to append, and the overwrite flag
-        String updateFilePath = "/home/richard/Documents/test-file.txt";
-        String updateFileData = "This is new data appended to the file using a kernel module.";
-        int overwriteFlag = 0;      // 0 for append, 1 for overwrite
-        updateFile(updateFilePath, updateFileData, overwriteFlag);
-        System.out.println();
-        System.out.println();
-
-        // TEST: DELETE FILE
-        // define the file path to be deleted using the kernel module
-        String deleteFilePath = "/home/richard/Documents/test-file.txt";
-        deleteFile(deleteFilePath);
-        System.out.println();
-        System.out.println();
-    }
-
-    // Method to request the creation of a folder using the kernel module
     public static void createFolder(String folderPath) {
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CREATE_FOLDER_PROC_FILE))) {
-            // Write the folder path to the /proc/create_folder file
+            // write the folder path to the /proc/create_folder file
             writer.write(folderPath);
             System.out.println("Requested the creation of folder: " + folderPath);
         } catch (IOException e) {
@@ -118,27 +48,31 @@ public class FMKernelModules {
         }
     }
 
+
     /**
-     * Returns an array of files in the specified directory.
+     * listFilesInDirectory
+     * this method lists all files in a directory.
      * 
-     * @param folderPath The path of the directory to list the files from.
-     * @return An array of files in the directory, or null if the directory does not exist or is not a directory.
+     * @param folderPath the path of the directory to list files from.
+     * @return File[] an array of files in the directory.
      */
+
     public static File[] listFilesInDirectory(String folderPath) {
-        // Create a File object for the given directory path
+        // create a File object for the given directory path
         File directory = new File(folderPath);
 
-        // Check if the directory exists and is a directory
+        // check if the path is a directory and exists
         if (directory.exists() && directory.isDirectory()) {
             // List all files in the directory
             File[] files = directory.listFiles();
             return files;
         } else {
-            // Return null if the path is not a directory or does not exist
+            // return null if the path is not a directory or does not exist
             System.out.println("The specified path is not a valid directory: " + folderPath);
             return null;
         }
     }
+
 
     /**
      * Gets information about a directory.
@@ -146,33 +80,34 @@ public class FMKernelModules {
      * @param directoryPath The path of the directory to get information from.
      * @return A string containing the information about the directory.
      */
+
     public static String getDirectoryInfo(String directoryPath) {
-        // Create a File object for the given directory path
+        // create a File object for the given directory path
         File directory = new File(directoryPath);
         
-        // Create a StringBuilder to accumulate the information
+        // create a StringBuilder to accumulate the information
         StringBuilder info = new StringBuilder();
         
         if (directory.exists() && directory.isDirectory()) {
-            // Get directory name
+            // get directory name
             String directoryName = directory.getName();
             info.append("Directory Name: ").append(directoryName).append("\n");
             
-            // Calculate total size of files within the directory
+            // calculate total size of files within the directory
             long totalSize = calculateTotalSize(directory);
             info.append("Total Size: ").append(totalSize).append(" bytes\n");
             
-            // Get last modified date
+            // get last modified date
             long lastModified = directory.lastModified();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date lastModifiedDate = new Date(lastModified);
             info.append("Date Modified: ").append(dateFormat.format(lastModifiedDate)).append("\n");
             
-            // Get directory path
+            // get directory path
             String directoryPathStr = directory.getAbsolutePath();
             info.append("Directory Path: ").append(directoryPathStr).append("\n");
             
-            // Get directory creation date (requires java.nio.file.Files and java.nio.file.attribute.BasicFileAttributes)
+            // get directory creation date (requires java.nio.file.Files and java.nio.file.attribute.BasicFileAttributes)
             try {
                 BasicFileAttributes attrs = Files.readAttributes(directory.toPath(), BasicFileAttributes.class);
                 long creationTime = attrs.creationTime().toMillis();
@@ -188,12 +123,15 @@ public class FMKernelModules {
         return info.toString();
     }
 
+
     /**
-     * Calculates the total size of all files in a directory recursively.
+     * calculateTotalSize
+     * this method calculates the total size of files in a directory.
      * 
-     * @param directory The directory to calculate the total size of.
-     * @return The total size in bytes.
+     * @param directory the directory to calculate the total size of files from.
+     * @return long the total size of files in the directory.
      */
+
     private static long calculateTotalSize(File directory) {
         long totalSize = 0;
         
@@ -211,15 +149,23 @@ public class FMKernelModules {
         return totalSize;
     }
 
-    // Method to request the renaming of a folder using the kernel module
+
+    /**
+     * renameFolder
+     * this method requests the renaming of a folder using the kernel module.
+     * 
+     * @param srcFolderPath the current path of the folder to rename.
+     * @param newName the new name for the folder.
+     * @return void
+     */
+
     public static void renameFolder(String srcFolderPath, String newName) {
         
-        // Prepare the input data by combining srcFolderPath and newName with a newline separator
+        // prepare the input data by combining srcFolderPath and newName with a newline separator
         String inputData = srcFolderPath + "\n" + newName + "\n";
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(RENAME_FOLDER_PROC_FILE))) {
-            // Write the input data to the /proc/rename_folder file
+            // write the input data to the /proc/rename_folder file
             writer.write(inputData);
             System.out.println("Requested the renaming of folder from '" + srcFolderPath + "' to '" + newName + "'");
         } catch (IOException e) {
@@ -227,10 +173,17 @@ public class FMKernelModules {
         }
     }
 
-    // Method to request the deletion of a folder using the kernel module
+
+    /**
+     * deleteFolder
+     * this method requests the deletion of a folder using the kernel module.
+     * 
+     * @param folderPath the path of the folder to delete.
+     * @return void
+     */
+
     public static void deleteFolder(String folderPath) {
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(DELETE_FOLDER_PROC_FILE))) {
             // Write the folder path you want to delete to the /proc/delete_folder file
             writer.write(folderPath);
@@ -239,14 +192,22 @@ public class FMKernelModules {
             System.err.println("An error occurred while trying to delete the folder: " + e.getMessage());
         }
     }
+
     
-    // Method to write file path and content to the kernel module
+    /**
+     * createFile
+     * this method requests the creation of a file using the kernel module.
+     * 
+     * @param filePath the path of the file to create.
+     * @param content the content to write to the file.
+     * @return void
+     */
+    
     public static void createFile(String filePath, String content) {
         
-        // Combine the file path and content into one string, separated by a newline character
+        // combine the file path and content into one string, separated by a newline character
         String inputData = filePath + "\n" + content;
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CREATE_FILE_PROC_FILE))) {
             writer.write(inputData);
             System.out.println("Data written to " + CREATE_FILE_PROC_FILE);
@@ -255,46 +216,49 @@ public class FMKernelModules {
         }
     }
 
+
     /**
-     * Gets the details of a file or directory.
+     * getFileDetails
+     * this method retrieves details about a file.
      * 
-     * @param filePath The path of the file or directory.
-     * @return A string containing the details of the file or directory.
+     * @param filePath the path of the file to get details from.
+     * @return String the details of the file.
      */
+
     public static String getFileDetails(String filePath) {
-        // Create a File object for the given file path
+        // create a File object for the given file path
         File file = new File(filePath);
         
-        // Create a StringBuilder to accumulate the details
+        // create a StringBuilder to accumulate the details
         StringBuilder details = new StringBuilder();
         
         if (file.exists()) {
-            // Get file name
+            // get file name
             String fileName = file.getName();
             details.append("File Name: ").append(fileName).append("\n");
             
-            // Determine file type (file or directory)
+            // determine file type (file or directory)
             if (file.isDirectory()) {
                 details.append("File Type: Directory\n");
             } else if (file.isFile()) {
                 details.append("File Type: File\n");
             }
             
-            // Get file size in bytes
+            // get file size in bytes
             long fileSize = file.length();
             details.append("File Size: ").append(fileSize).append(" bytes\n");
             
-            // Get last modified date
+            // get last modified date
             long lastModified = file.lastModified();
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date lastModifiedDate = new Date(lastModified);
             details.append("Date Modified: ").append(dateFormat.format(lastModifiedDate)).append("\n");
             
-            // Get file path
+            // get file path
             String filePathStr = file.getAbsolutePath();
             details.append("File Path: ").append(filePathStr).append("\n");
             
-            // Get file creation date (requires java.nio.file.Files and java.nio.file.attribute.BasicFileAttributes)
+            // get file creation date (requires java.nio.file.Files and java.nio.file.attribute.BasicFileAttributes)
             try {
                 BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
                 long creationTime = attrs.creationTime().toMillis();
@@ -310,15 +274,52 @@ public class FMKernelModules {
         return details.toString();
     }
 
-    // Method to request the renaming of a file using the kernel module
+    
+    /**
+     * readFileContent
+     * this method reads the content of a file.
+     * 
+     * @param filePath the path of the file to read content from.
+     * @return String the content of the file.
+     * @throws IOException if an I/O error occurs.
+     * @return void
+     */
+
+    public static String readFileContent(String filePath) throws IOException {
+        // use StringBuilder to accumulate the file content
+        StringBuilder content = new StringBuilder();
+        
+        // create a FileReader and BufferedReader to read the file
+        try (FileReader fileReader = new FileReader(filePath);
+             BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+            
+            // read the file line by line and append each line to the content
+            String line;
+            while ((line = bufferedReader.readLine()) != null) {
+                content.append(line).append(System.lineSeparator());
+            }
+        }
+        
+        // return the file content as a string
+        return content.toString();
+    }
+
+    /**
+     * renameFile
+     * this method requests the renaming of a file using the kernel module.
+     * 
+     * @param currentPath the current path of the file to rename.
+     * @param newName the new name for the file.
+     * @return void
+    */
+
     public static void renameFile(String currentPath, String newName) {
         
-        // Create the buffer by combining current path and new name with a newline separator
+        // create the buffer by combining current path and new name with a newline separator
         String buffer = currentPath + "\n" + newName + "\n";
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(RENAME_FILE_PROC_FILE))) {
-            // Write the buffer to the /proc/rename_file file
+            // write the buffer to the /proc/rename_file file
             writer.write(buffer);
             System.out.println("Successfully sent rename request: " + currentPath + " -> " + newName);
         } catch (IOException e) {
@@ -332,13 +333,22 @@ public class FMKernelModules {
         }
     }
 
-    // Method to request updating a file using the kernel module
+    
+    /**
+     * updateFile
+     * this method requests the updating of a file using the kernel module.
+     * 
+     * @param filePath the path of the file to update.
+     * @param newData the new data to write to the file.
+     * @param overwriteFlag the flag to determine whether to overwrite the file.
+     * @return void
+     */
+
     public static void updateFile(String filePath, String newData, int overwriteFlag) {
         
-        // Prepare the input data in the format: file_path | new_data | overwrite_flag
+        // prepare the input data in the format: file_path | new_data | overwrite_flag
         String inputData = filePath + "|" + newData + "|" + overwriteFlag;
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(UPDATE_FILE_PROC_FILE))) {
             // Write the input data to the /proc/update_file file
             writer.write(inputData);
@@ -348,12 +358,19 @@ public class FMKernelModules {
         }
     }
 
-    // Method to request the deletion of a file using the kernel module
+    
+    /**
+     * deleteFile
+     * this method requests the deletion of a file using the kernel module.
+     * 
+     * @param filePath the path of the file to delete.
+     * @return void
+     */
+
     public static void deleteFile(String filePath) {
         
-        // Try-with-resources to handle the file writing
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(DELETE_FILE_PROC_FILE))) {
-            // Write the file path you want to delete to the /proc/delete_file file
+            // write the file path you want to delete to the /proc/delete_file file
             writer.write(filePath);
             System.out.println("Requested deletion of file: " + filePath);
         } catch (IOException e) {
