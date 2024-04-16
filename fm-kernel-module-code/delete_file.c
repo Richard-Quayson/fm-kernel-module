@@ -56,41 +56,67 @@ static int delete_file(const char *file_path) {
     return 0;
 }
 
-// Proc write function to handle file path input
+
+/**
+ * delete_file_write
+ * this function is called when the /proc/delete_file file is written to
+ * it deletes the file at the specified path
+ * 
+ * @param file: file pointer
+ * @param user_buffer: user buffer
+ * @param count: number of bytes to write
+ * @param offset: file offset
+ * @return ssize_t: number of bytes written
+*/
+
 static ssize_t delete_file_write(struct file *file, const char __user *user_buffer, size_t count, loff_t *offset) {
     char *buffer;
 
-    // Allocate memory for buffer
+    // allocate memory for buffer
     buffer = kzalloc(count + 1, GFP_KERNEL);
     if (!buffer) {
         return -ENOMEM;
     }
 
-    // Copy data from user space to kernel space
+    // copy data from user space to kernel space
     if (copy_from_user(buffer, user_buffer, count)) {
         kfree(buffer);
         return -EFAULT;
     }
 
-    // Null-terminate the buffer
+    // null-terminate the buffer
     buffer[count] = '\0';
 
-    // Call the function to delete the file
+    // call the function to delete the file
     int ret = delete_file(buffer);
 
-    // Free the buffer memory
+    // free the buffer memory
     kfree(buffer);
 
-    // Return the number of bytes written or the error code
+    // return the number of bytes written or the error code
     return ret == 0 ? count : ret;
 }
 
-// Proc file operations structure
+
+/**
+ * pops
+ * struct to hold the proc_ops for the /proc/delete_file file
+*/
+
 static const struct proc_ops pops = {
     .proc_write = delete_file_write,
 };
 
-// Module initialization function
+
+/**
+ * delete_file_init
+ * this function is called when the module is loaded
+ * it creates the /proc/delete_file file
+ * 
+ * @param void
+ * @return int: 0 if successful, error code otherwise
+*/
+
 static int __init delete_file_init(void) {
     proc_entry = proc_create("delete_file", 0222, NULL, &pops);
     if (!proc_entry) {
@@ -102,7 +128,16 @@ static int __init delete_file_init(void) {
     return 0;
 }
 
-// Module cleanup function
+
+/**
+ * delete_file_exit
+ * this function is called when the module is unloaded
+ * it removes the /proc/delete_file file
+ * 
+ * @param void
+ * @return void
+*/
+
 static void __exit delete_file_exit(void) {
     // Remove the proc entry if it exists
     if (proc_entry) {
@@ -112,7 +147,7 @@ static void __exit delete_file_exit(void) {
     printk(KERN_INFO "Delete File Kernel Module unloaded.\n");
 }
 
-// Register module init and exit functions
+
+// register the module entry and exit points
 module_init(delete_file_init);
 module_exit(delete_file_exit);
-
