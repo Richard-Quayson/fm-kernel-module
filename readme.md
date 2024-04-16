@@ -2,7 +2,7 @@
 
 ### Overview
 
-The FM Kernel Module Program is a Java application designed to interact with custom kernel modules for file management operations. It facilitates the creation, renaming, and deletion of files and folders through a graphical user interface (GUI) built with JavaFX.
+The FM Kernel Module Program is a Java application designed to interact with custom kernel modules built using C for file management operations. It facilitates the creation, renaming, and deletion of files and folders through a graphical user interface (GUI) built with JavaFX.
 
 ### Running the Program
 
