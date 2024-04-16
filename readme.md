@@ -1,55 +1,38 @@
-## FM Kernel Module Program
+### Simple OS Kernel
+The repository contains three branches.
 
-### Overview
+* **main**: contains working code on progress
+* **richard**: contains test implementation to be merged with main when it works.
+* **thomas**: contains test implementation to be merged with main when it works.
 
-The FM Kernel Module Program is a Java application designed to interact with custom kernel modules built using C for file management operations. It facilitates the creation, renaming, and deletion of files and folders through a graphical user interface (GUI) built with JavaFX.
+**Pushing rule of thumb**:
 
-### Running the Program
+Always pull before pushing. More specifically:
+* pull in the main branch
 
-To run the FM Kernel Module Program, follow these steps:
+```[bash]
+git switch main
+git pull
+````
 
-1. **Compile the Kernel Modules**:
-    - Navigate to the directory containing the kernel module code.
-    - Run `make` to compile all the kernel modules.
+* switch to your test branch
 
-2. **Insert Kernel Modules**:
-    - Insert all the compiled kernel modules using the `sudo insmod` command. For example:
-        ```bash
-        sudo insmod create_file.ko
-        sudo insmod create_folder.ko
-        ...
-        ```
+```[bash]
+git switch <branch_name>
+````
 
-3. **Compile the Java Program**:
-    - Compile the Java program using the `javac` command. For example:
-        ```bash
-        javac FMKernelModules.java Main.java
-        ```
+* merge main with your branch 
 
-4. **Run the Java Program**:
-    - Execute the compiled Java program using the `java` command:
-        ```bash
-        java Main
-        ```
+```[bash]
+git merge main
+````
 
-### File Structure
+* resolve all conflicts, commit and then push to your origin branch
+```[bash]
+git push
+````
 
-The FM Kernel Module Program directory structure is as follows:
+* create pull request on GitHub and merge when **able to merge** is shown on the Pull request page.
 
-- **`create_file.c`**: Source code for the kernel module to create a file.
-- **`create_folder.c`**: Source code for the kernel module to create a folder.
-- **`delete_file.c`**: Source code for the kernel module to delete a file.
-- **`delete_folder.c`**: Source code for the kernel module to delete a folder.
-- **`rename_file.c`**: Source code for the kernel module to rename a file.
-- **`rename_folder.c`**: Source code for the kernel module to rename a folder.
-- **`update_file.c`**: Source code for the kernel module to update a file.
-- **`FMKernelModules.java`**: Java source code for the main application.
-- **`Main.java`**: Java source code for the main class to run the application.
-- **`Makefile`**: Makefile for compiling the kernel modules.
-- **`Module.symvers`**: Module symbol versions file.
-- **`README.md`**: Readme file providing instructions on how to run the program.
-- Other kernel module related files and directories.
 
-### Conclusion
-
-The FM Kernel Module Program offers a seamless integration of user-friendly file management operations with custom kernel modules. By following the provided instructions, users can efficiently compile and run the program to perform various file and folder operations via a simple and intuitive graphical interface.
+**Let's have fun while passing the course! 🙏😂🥳😁🙏**
