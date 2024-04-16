@@ -4,21 +4,34 @@
 #include <linux/proc_fs.h>
 #include <linux/uaccess.h>
 #include <linux/err.h>
-#include <linux/slab.h> // kzalloc
-#include <linux/dcache.h> // d_lookup
+#include <linux/slab.h> 
+#include <linux/dcache.h> 
 #include <linux/namei.h>
-#include <linux/file.h> // filp_open, filp_close, kernel_write
-#include <linux/fcntl.h> // O_WRONLY, O_APPEND
+#include <linux/file.h> 
+#include <linux/fcntl.h> 
 
-// Module metadata
+
+// module metadata
 MODULE_AUTHOR("Richard Quayson & Thomas Quarshie");
 MODULE_DESCRIPTION("Update File Kernel Module");
 MODULE_LICENSE("GPL");
 
-// Proc file entry
+
+// proc file entry
 static struct proc_dir_entry *proc_entry;
 
-// Function to handle file updates
+
+/**
+ * update_file_write
+ * this function is called when the /proc/update_file file is written to
+ * 
+ * @param file: file pointer
+ * @param user_buffer: user buffer
+ * @param count: number of bytes to write
+ * @param offset: file offset
+ * @return ssize_t: number of bytes written
+*/
+
 static ssize_t update_file_write(struct file *file, const char __user *user_buffer, size_t count, loff_t *offset) {
     char *buffer;
     char *file_path = NULL;
@@ -27,49 +40,49 @@ static ssize_t update_file_write(struct file *file, const char __user *user_buff
     char *overwrite_flag_str = NULL;
     int overwrite_flag;
 
-    // Allocate memory for buffer
+    // allocate memory for buffer
     buffer = kzalloc(count + 1, GFP_KERNEL);
     if (!buffer) {
         return -ENOMEM;
     }
 
-    // Copy data from user space to kernel space
+    // copy data from user space to kernel space
     if (copy_from_user(buffer, user_buffer, count)) {
         kfree(buffer);
         return -EFAULT;
     }
 
-    buffer[count] = '\0'; // Null-terminate the buffer
+    buffer[count] = '\0';               // null-terminate the buffer
 
-    // Locate the pipe character ('|') in the buffer
+    // locate the pipe character ('|') in the buffer
     newline_pos = strchr(buffer, '|');
     if (!newline_pos) {
         kfree(buffer);
-        return -EINVAL; // Invalid input, expected a newline character
+        return -EINVAL;                 // invalid input, expected a newline character
     }
 
-    // Split the buffer into file path and content
+    // split the buffer into file path and content
     *newline_pos = '\0';
     file_path = buffer;
     file_content = newline_pos + 1;
 
-    // Locate another pipe character to split content and overwrite flag
+    // locate another pipe character to split content and overwrite flag
     newline_pos = strchr(file_content, '|');
     if (!newline_pos) {
         kfree(buffer);
-        return -EINVAL; // Invalid input, expected a newline character
+        return -EINVAL;                 // invalid input, expected a newline character
     }
 
     *newline_pos = '\0';
     overwrite_flag_str = newline_pos + 1;
 
-    // Convert overwrite_flag_str to int
+    // convert overwrite_flag_str to int
     if (kstrtoint(overwrite_flag_str, 10, &overwrite_flag) != 0) {
         kfree(buffer);
-        return -EINVAL; // Invalid overwrite flag input
+        return -EINVAL;                 // invalid overwrite flag input
     }
 
-    // Open the file with the appropriate flags
+    // open the file with the appropriate flags
     int file_flags = O_WRONLY | ((overwrite_flag) ? O_TRUNC : O_APPEND);
     struct file *filp = filp_open(file_path, file_flags, 0644);
     if (IS_ERR(filp)) {
@@ -78,7 +91,7 @@ static ssize_t update_file_write(struct file *file, const char __user *user_buff
         return PTR_ERR(filp);
     }
 
-    // Write the content to the file
+    // write the content to the file
     ssize_t written = kernel_write(filp, file_content, strlen(file_content), &filp->f_pos);
     if (written < 0) {
         printk(KERN_ERR "Failed to write to file: %ld\n", written);
@@ -89,22 +102,35 @@ static ssize_t update_file_write(struct file *file, const char __user *user_buff
         printk(KERN_INFO "File updated successfully: %s\n", file_path);
     }
 
-    // Close the file
+    // close the file
     filp_close(filp, NULL);
 
-    // Free allocated memory
+    // free allocated memory
     kfree(buffer);
 
-    // Return the number of bytes written
+    // return the number of bytes written
     return written;
 }
 
-// Proc file operations structure
+
+/**
+ * pops
+ * proc_ops structure for the /proc/update_file file
+*/
+
 static const struct proc_ops pops = {
     .proc_write = update_file_write,
 };
 
-// Module initialization function
+
+/**
+ * update_file_init
+ * module initialization function
+ * 
+ * @param void
+ * @return int: 0 if successful, otherwise the error code
+*/
+
 static int __init update_file_init(void) {
     proc_entry = proc_create("update_file", 0222, NULL, &pops);
     if (!proc_entry) {
@@ -116,7 +142,15 @@ static int __init update_file_init(void) {
     return 0;
 }
 
-// Module cleanup function
+
+/**
+ * update_file_exit
+ * module exit function
+ * 
+ * @param void
+ * @return void
+*/
+
 static void __exit update_file_exit(void) {
     if (proc_entry) {
         proc_remove(proc_entry);
@@ -125,6 +159,7 @@ static void __exit update_file_exit(void) {
     printk(KERN_INFO "Update File Kernel Module unloaded.\n");
 }
 
+
+// module initialization and exit macros
 module_init(update_file_init);
 module_exit(update_file_exit);
-
