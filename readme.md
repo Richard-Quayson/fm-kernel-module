@@ -83,3 +83,5 @@ To run the JavaFX application, ensure you have the following requirements instal
 Watch a demonstration of the FM Kernel Module Program on YouTube:
 [FM Kernel Module Program Demo](https://youtu.be/pCd2x2DIoj0)
 
+## Repository Link:
+https://github.com/Richard-Quayson/fm-kernel-module.git
