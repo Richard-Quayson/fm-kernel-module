@@ -1,5 +1,5 @@
 # Python script to use the kernel module
-folder_path = "/home/richard/Documents/test-create"
+folder_path = "/home/richard/Documents/new-folder"
 
 # Open the /proc/create_folder file for writing
 with open('/proc/create_folder', 'w') as proc_file:
