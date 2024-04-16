@@ -5,16 +5,31 @@
 #include <linux/uaccess.h>
 #include <linux/namei.h>
 #include <linux/err.h>
-#include <linux/slab.h> // kzalloc
-#include <linux/dcache.h> // d_lookup, d_alloc_name, d_instantiate
+#include <linux/slab.h>
+#include <linux/dcache.h>
+
 
 // Module metadata
 MODULE_AUTHOR("Richard Quayson & Thomas Quarshie");
 MODULE_DESCRIPTION("Create File Kernel Module");
 MODULE_LICENSE("GPL");
 
-// Proc file entry
+
+// proc file entry
 static struct proc_dir_entry *proc_entry;
+
+
+/**
+ * create_file_write
+ * this function is called when the /proc/create_file file is written to
+ * it creates a file with the specified path and writes the content to it
+ * 
+ * @param file: file pointer
+ * @param user_buffer: user buffer
+ * @param count: number of bytes to write
+ * @param offset: file offset
+ * @return ssize_t: number of bytes written
+*/
 
 static ssize_t create_file_write(struct file *file, const char __user *user_buffer, size_t count, loff_t *offset) {
     char *buffer;
@@ -22,33 +37,33 @@ static ssize_t create_file_write(struct file *file, const char __user *user_buff
     char *file_content = NULL;
     char *newline_pos = NULL;
 
-    // Allocate memory for buffer
+    // allocate memory for buffer
     buffer = kzalloc(count + 1, GFP_KERNEL);
     if (!buffer) {
         return -ENOMEM;
     }
 
-    // Copy data from user space to kernel space
+    // copy data from user space to kernel space
     if (copy_from_user(buffer, user_buffer, count)) {
         kfree(buffer);
         return -EFAULT;
     }
 
-    buffer[count] = '\0'; // Null-terminate the buffer
+    buffer[count] = '\0'; // null-terminate the buffer
 
-    // Locate the newline character ('\n') in the buffer
+    // locate the newline character ('\n') in the buffer
     newline_pos = strchr(buffer, '\n');
     if (!newline_pos) {
         kfree(buffer);
-        return -EINVAL; // Invalid input, expected a newline character
+        return -EINVAL; // invalid input, expected a newline character
     }
 
-    // Split the buffer into file path and content
+    // split the buffer into file path and content
     *newline_pos = '\0';
     file_path = buffer;
     file_content = newline_pos + 1;
 
-    // Create the file and open it
+    // create the file and open it
     struct file *filp = filp_open(file_path, O_CREAT | O_WRONLY | O_TRUNC, 0644);
     if (IS_ERR(filp)) {
         printk(KERN_ERR "Failed to create or open file: %ld\n", PTR_ERR(filp));
@@ -56,7 +71,7 @@ static ssize_t create_file_write(struct file *file, const char __user *user_buff
         return PTR_ERR(filp);
     }
 
-    // Write the content to the file
+    // write the content to the file
     ssize_t written = kernel_write(filp, file_content, strlen(file_content), &filp->f_pos);
     if (written < 0) {
         printk(KERN_ERR "Failed to write to file: %ld\n", written);
@@ -67,22 +82,36 @@ static ssize_t create_file_write(struct file *file, const char __user *user_buff
         printk(KERN_INFO "File created and content written successfully: %s\n", file_path);
     }
 
-    // Close the file
+    // close the file
     filp_close(filp, NULL);
 
-    // Free allocated memory
+    // free allocated memory
     kfree(buffer);
 
-    // Return the number of bytes written
+    // return the number of bytes written
     return written;
 }
 
-// Proc file operations structure
+
+/**
+ * pops
+ * proc_ops structure for the /proc/create_file file
+*/
+
 static const struct proc_ops pops = {
     .proc_write = create_file_write,
 };
 
-// Module initialization function
+
+/**
+ * create_file_init
+ * this function is called when the module is loaded
+ * it creates the /proc/create_file file
+ * 
+ * @param void
+ * @return int: 0 if successful, otherwise the error code
+*/
+
 static int __init create_file_init(void) {
     proc_entry = proc_create("create_file", 0222, NULL, &pops);
     if (!proc_entry) {
@@ -94,7 +123,16 @@ static int __init create_file_init(void) {
     return 0;
 }
 
-// Module cleanup function
+
+/**
+ * create_file_exit
+ * this function is called when the module is unloaded
+ * it removes the /proc/create_file file
+ * 
+ * @param void
+ * @return void
+*/
+
 static void __exit create_file_exit(void) {
     if (proc_entry) {
         proc_remove(proc_entry);
@@ -103,5 +141,6 @@ static void __exit create_file_exit(void) {
     printk(KERN_INFO "Create File Kernel Module unloaded.\n");
 }
 
+// register the module initialization and cleanup functions
 module_init(create_file_init);
 module_exit(create_file_exit);

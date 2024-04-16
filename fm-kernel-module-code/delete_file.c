@@ -1,38 +1,48 @@
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/fs.h>         // For vfs_unlink, path operations
-#include <linux/uaccess.h>    // For copy_from_user
-#include <linux/proc_fs.h>    // For proc_create and proc_remove
-#include <linux/dcache.h>     // For dentry, inode
-#include <linux/err.h>        // For error codes
-#include <linux/slab.h>       // For kzalloc and kfree
-#include <linux/namei.h>      // For kern_path and LOOKUP_FOLLOW
-#include <linux/path.h>       // For path_put
+#include <linux/fs.h>         
+#include <linux/uaccess.h>   
+#include <linux/proc_fs.h>   
+#include <linux/dcache.h>  
+#include <linux/err.h>
+#include <linux/slab.h>
+#include <linux/namei.h>
+#include <linux/path.h>
 
-// Module metadata
+
+// module metadata
 MODULE_AUTHOR("Richard Quayson & Thomas Quarshie");
 MODULE_DESCRIPTION("Delete File Kernel Module");
 MODULE_LICENSE("GPL");
 
-// Declaration of the proc file entry
+
+// struct to hold the mount idmap
 static struct proc_dir_entry *proc_entry;
 
-// Function to delete a file given its path
+
+/**
+ * delete_file
+ * this function is called to delete a file at the specified path
+ * 
+ * @param file_path: path to the file to delete
+ * @return int: 0 if successful, error code otherwise
+*/
+
 static int delete_file(const char *file_path) {
     struct path path;
     int ret;
 
-    // Resolve the file path
+    // resolve the file path
     ret = kern_path(file_path, LOOKUP_FOLLOW, &path);
     if (ret != 0) {
         printk(KERN_ERR "Failed to resolve file path: %d\n", ret);
         return ret;
     }
 
-    // Retrieve `mnt_idmap` from `path`
+    // retrieve `mnt_idmap` from `path`
     struct mnt_idmap *mnt_idmap = path.mnt->mnt_idmap;
 
-    // Perform unlink operation
+    // perform unlink operation
     ret = vfs_unlink(mnt_idmap, path.dentry->d_parent->d_inode, path.dentry, NULL);
     if (ret != 0) {
         printk(KERN_ERR "Failed to delete file: %d\n", ret);
@@ -40,7 +50,7 @@ static int delete_file(const char *file_path) {
         return ret;
     }
 
-    // Clean up
+    // clean up
     path_put(&path);
     printk(KERN_INFO "File deleted successfully: %s\n", file_path);
     return 0;

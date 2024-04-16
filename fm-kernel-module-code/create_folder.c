@@ -5,16 +5,31 @@
 #include <linux/uaccess.h>
 #include <linux/namei.h>
 #include <linux/err.h>
-#include <linux/slab.h> // kzalloc
-#include <linux/dcache.h> // d_lookup, d_alloc_name, d_instantiate
+#include <linux/slab.h>
+#include <linux/dcache.h>
 
-// Module metadata
+
+// module metadata
 MODULE_AUTHOR("Richard Quayson & Thomas Quarshie");
 MODULE_DESCRIPTION("Create Folder Kernel Module");
 MODULE_LICENSE("GPL");
 
-// Proc file entry
+
+// proc file entry
 static struct proc_dir_entry* proc_entry;
+
+
+/**
+ * create_folder_write
+ * this function is called when the /proc/create_folder file is written to
+ * it creates a folder with the specified path
+ * 
+ * @param file: file pointer
+ * @param user_buffer: user buffer
+ * @param count: number of bytes to write
+ * @param offset: file offset
+ * @return ssize_t: number of bytes written
+*/
 
 static ssize_t create_folder_write(struct file *file, const char __user *user_buffer, size_t count, loff_t *offset) {
     char *buffer;
@@ -24,12 +39,13 @@ static ssize_t create_folder_write(struct file *file, const char __user *user_bu
     struct path dir_path;
     struct qstr qstr;
 
-    // Copy data from user space
+    // copy data from user space
     buffer = kzalloc(count + 1, GFP_KERNEL);
     if (!buffer) {
         return -ENOMEM;
     }
 
+    // copy data from user space to kernel space
     if (copy_from_user(buffer, user_buffer, count)) {
         kfree(buffer);
         return -EFAULT;
@@ -37,29 +53,29 @@ static ssize_t create_folder_write(struct file *file, const char __user *user_bu
 
     buffer[count] = '\0';
 
-    // Separate the path into parent directory and folder name
-    folder_path = kzalloc(strlen(buffer) + 2, GFP_KERNEL); // Add 2 for leading '/' and null terminator
+    // separate the path into parent directory and folder name
+    folder_path = kzalloc(strlen(buffer) + 2, GFP_KERNEL);      // add 2 for leading '/' and null terminator
     if (!folder_path) {
         kfree(buffer);
         return -ENOMEM;
     }
 
-    sprintf(folder_path, "/%s", buffer); // Prepend the '/' to the folder path
+    sprintf(folder_path, "/%s", buffer);                        // prepend the '/' to the folder path
     
-    // Find the last '/' in the path to separate parent path and folder name
+    // find the last '/' in the path to separate parent path and folder name
     char *last_slash = strrchr(folder_path, '/');
     if (last_slash == NULL) {
         kfree(buffer);
         kfree(folder_path);
-        return -EINVAL; // Invalid argument since the path must contain '/'
+        return -EINVAL;                                         // invalid argument since the path must contain '/'
     }
 
-    // Split the path into parent directory and folder name
+    // split the path into parent directory and folder name
     *last_slash = '\0';
     parent_path = folder_path;
     folder_name = last_slash + 1;
 
-    // Resolve the parent path
+    // resolve the parent path
     printk(KERN_INFO "Requested parent directory path: %s\n", parent_path);
     int ret = kern_path(parent_path, LOOKUP_DIRECTORY, &dir_path);
     if (ret != 0) {
@@ -69,16 +85,16 @@ static ssize_t create_folder_write(struct file *file, const char __user *user_bu
         return ret;
     }
 
-    // Create qstr for the folder name
+    // create qstr for the folder name
     qstr.name = folder_name;
     qstr.len = strlen(folder_name);
 
-    // Find the dentry for the parent directory
+    // find the dentry for the parent directory
     struct dentry *parent_dentry = dir_path.dentry;
-    // Find or create the dentry for the new folder
+    // find or create the dentry for the new folder
     struct dentry *new_folder_dentry = d_lookup(parent_dentry, &qstr);
 
-    // If the dentry for the new folder does not exist, create it
+    // if the dentry for the new folder does not exist, create it
     if (!new_folder_dentry) {
         new_folder_dentry = d_alloc_name(parent_dentry, folder_name);
         if (!new_folder_dentry) {
@@ -89,11 +105,11 @@ static ssize_t create_folder_write(struct file *file, const char __user *user_bu
             return -ENOMEM;
         }
 
-        // Link the dentry with the parent directory
+        // link the dentry with the parent directory
         d_instantiate(new_folder_dentry, NULL);
     }
 
-    // Create the directory
+    // create the directory
     ret = vfs_mkdir(dir_path.mnt->mnt_idmap, dir_path.dentry->d_inode, new_folder_dentry, 0755);
     if (ret != 0) {
         printk(KERN_ERR "Failed to create directory: %d\n", ret);
@@ -101,19 +117,35 @@ static ssize_t create_folder_write(struct file *file, const char __user *user_bu
         printk(KERN_INFO "Directory created successfully: %s\n", buffer);
     }
 
+    // free allocated memory
     path_put(&dir_path);
     kfree(buffer);
     kfree(folder_path);
 
+    // return the number of bytes written
     return ret == 0 ? count : ret;
 }
 
-// Proc file operations structure
+
+/**
+ * pops
+ * this structure defines the file operations for the /proc/create_folder file
+*/
+
 static const struct proc_ops pops = {
     .proc_write = create_folder_write,
 };
 
-// Module initialization function
+
+/**
+ * create_folder_init
+ * this function is called when the module is loaded
+ * it creates the /proc/create_folder file
+ * 
+ * @param void
+ * @return int: 0 if successful, otherwise the error code
+*/
+
 static int __init create_folder_init(void) {
     proc_entry = proc_create("create_folder", 0222, NULL, &pops);
     if (!proc_entry) {
@@ -125,7 +157,16 @@ static int __init create_folder_init(void) {
     return 0;
 }
 
-// Module cleanup function
+
+/**
+ * create_folder_exit
+ * this function is called when the module is unloaded
+ * it removes the /proc/create_folder file
+ * 
+ * @param void
+ * @return void
+*/
+
 static void __exit create_folder_exit(void) {
     if (proc_entry) {
         proc_remove(proc_entry);
@@ -134,5 +175,6 @@ static void __exit create_folder_exit(void) {
     printk(KERN_INFO "Create Folder Kernel Module unloaded.\n");
 }
 
+// register the module initialization and cleanup functions
 module_init(create_folder_init);
 module_exit(create_folder_exit);
