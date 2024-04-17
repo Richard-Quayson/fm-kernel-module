@@ -10,7 +10,6 @@ To run the FM Kernel Module Program, follow these steps:
 
 1. **Compile the Kernel Modules**:
     - Navigate to the directory containing the kernel module code.
-    - Run `make` to compile all the kernel modules.
     - Give permissions to the script files:
         ```bash
         chmod +x run_km.sh
@@ -23,20 +22,7 @@ To run the FM Kernel Module Program, follow these steps:
         ./run_km.sh
         ```
 
-3. **Compile the Java Program**:
-    - Navigate to the `App Interface` directory.
-    - Compile the Java program using the `javac` command. For example:
-        ```bash
-        javac -cp .:../lib/* controllers/*.java views/*.java
-        ```
-
-4. **Run the Java Program**:
-    - Execute the compiled Java program using the `java` command:
-        ```bash
-        java -cp .:../lib/* Main
-        ```
-
-5. **Remove Kernel Modules**:
+3. **Remove Kernel Modules**:
     - Execute the script to remove all kernel modules:
         ```bash
         ./rm_km.sh
